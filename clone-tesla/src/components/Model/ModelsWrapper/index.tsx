@@ -1,48 +1,55 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { CarModel } from '../ModelsContext'
-import { Container, OverlayRoot, ModelOverlay } from './styles';
+import React, { useCallback, useRef, useState } from 'react'
 
-const ModelsWrapper: React.FC<any> = ({children}) => {
-    const wrapperRef = useRef<HTMLDivElement>(null)
+import ModelsContext, { CarModel } from '../ModelsContext'
+import ModelOverlay from '../ModelOverlay'
 
-    const [registeredModels, setRegisteredModels] = useState<CarModel[]>([])
+import { Container, OverlaysRoot } from './styles'
 
-    const registerModel = useCallback((model: CarModel) => {
-        setRegisteredModels(state => [...state, model])
-    }, [])
+const ModelsWrapper: React.FC = ({ children }) => {
+  const wrapperRef = useRef<HTMLDivElement>(null)
 
-    const unregisterModel = useCallback((modelName: string) => {
-        setRegisteredModels(state =>
-            state.filter(model => model.modelName == modelName))
-    }, [])
+  const [registeredModels, setRegisteredModels] = useState<CarModel[]>([])
 
-    const getModelByName = useCallback((modelName: string) => {
-        return registeredModels.find(item => item.modelName === modelName) || null
-    }, 
+  const registerModel = useCallback((model: CarModel) => {
+    setRegisteredModels(state => [...state, { ...model }])
+  }, [])
+
+  const unregisterModel = useCallback((modelName: string) => {
+    setRegisteredModels(state =>
+      state.filter(model => model.modelName !== modelName)
+    )
+  }, [])
+
+  const getModelByName = useCallback(
+    (modelName: string) => {
+      return registeredModels.find(item => item.modelName === modelName) || null
+    },
     [registeredModels]
-    )
+  )
 
-    return (
-        <ModelsContext.Provider value={{
-            wrapperRef,
-            registeredModels,
-            registerModel,
-            unregisterModel,
-            getModelByName,
-        }}
-        >
-            <Container ref={wrapperRef}>
-                <OverlayRoot>
-                        {registeredModels.map(item => (
-                            <ModelOverlay key={item.modelName}> {item.overLayNode}</ModelOverlay>
-                        ))}
-                </OverlayRoot>    
-                
-                {children}
-                
-            </Container>
-        </ModelsContext.Provider>
-    )
+  return (
+    <ModelsContext.Provider
+      value={{
+        wrapperRef,
+        registeredModels,
+        registerModel,
+        unregisterModel,
+        getModelByName
+      }}
+    >
+      <Container ref={wrapperRef}>
+        <OverlaysRoot>
+          {registeredModels.map(item => (
+            <ModelOverlay key={item.modelName} model={item}>
+              {item.overlayNode}
+            </ModelOverlay>
+          ))}
+        </OverlaysRoot>
+
+        {children}
+      </Container>
+    </ModelsContext.Provider>
+  )
 }
 
-export default ModelsWrapper;
+export default ModelsWrapper
